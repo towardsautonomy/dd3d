@@ -2,6 +2,7 @@
 
 ## run the docker container with X11 socket forwarding
 MNT_DIR=/dd3d
+DOCKER_TAG="towardsautonomy/environments:ubuntu-20.04-cudnn8-cuda-11.3.1-pytorch-1.9.1-dd3d"
 # create a xauth file with access permission
 xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f /tmp/.docker.xauth-n nmerge -
 # add non-network local connections to access control list
@@ -19,6 +20,6 @@ sudo docker run -it --rm -e DISPLAY=unix$DISPLAY                     \
                          -e PYTHONPATH=${MNT_DIR}                    \
                          -e XAUTHORITY=/tmp/.docker.xauth            \
                          --net=host --ipc host                       \
-                         --gpus all dd3d:latest
+                         --gpus all $DOCKER_TAG bash
 # remove non-network local connections from access control list
 xhost -local:root
