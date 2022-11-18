@@ -38,6 +38,8 @@ def init_wandb(cfg):
     del _cfg.hydra
     cfg_as_dict = OmegaConf.to_container(_cfg, resolve=True)
     wandb.init(project=cfg.WANDB.PROJECT, config=cfg_as_dict, tags=cfg.WANDB.TAGS, group=cfg.WANDB.GROUP)
+    if cfg.WANDB.NAME != '':
+        wandb.run.name = cfg.WANDB.NAME
 
 
 def wandb_is_initialized():

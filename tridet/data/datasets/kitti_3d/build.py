@@ -13,6 +13,7 @@ import seaborn as sns
 from PIL import Image
 from pyquaternion import Quaternion
 from torch.utils.data import Dataset
+import pickle
 
 from detectron2.data import MetadataCatalog
 from detectron2.data.catalog import DatasetCatalog
@@ -53,6 +54,7 @@ MV3D_SPLIT_KITTI_3D_REMAP = {
 class KITTI3DDataset(Dataset):
     def __init__(self, root_dir, mv3d_split, class_names, sensors, box2d_from_box3d=False, max_num_items=None):
         self.root_dir = root_dir
+        self.dataset_equity = True
         assert mv3d_split in ["train", "val", "trainval", "test"]
         with open(os.path.join(self.root_dir, "mv3d_kitti_splits", "{}.txt".format(mv3d_split))) as _f:
             lines = _f.readlines()
@@ -69,7 +71,13 @@ class KITTI3DDataset(Dataset):
             LOG.warning(f"Overwriting 'box2d_from_box3d' from 'False' to 'True' (sensors = {', '.join(sensors)}).")
             box2d_from_box3d = True
         self._box2d_from_box3d = box2d_from_box3d
-
+        # read dataset cluster likelihood information
+        cluster_likelihood_info_path = os.path.join(self.root_dir, "kitti_training_cluster_info.pkl")
+        if not os.path.exists(cluster_likelihood_info_path):
+            LOG.error(f"Cluster likelihood info not found at {cluster_likelihood_info_path}. Deactivating dataset equity.")
+            self.dataset_equity = False
+        else:
+            self.dataset_cluster_info = pickle.load(open(cluster_likelihood_info_path, 'rb'))
         self.calibration_table = self._parse_calibration_files()
 
     def _parse_calibration_files(self):
@@ -164,6 +172,11 @@ class KITTI3DDataset(Dataset):
         sample = OrderedDict()
         for sensor_name in self._sensors:
             sample.update(self._get_sample_data(sample_id, sensor_name))
+            sample_likelihood = 1.0
+            if self._mv3d_split == 'train' and self.dataset_equity:
+                sample_likelihood = (self.dataset_cluster_info[sample_id]['cluster_size'] /
+                                     self.dataset_cluster_info[sample_id]['largest_cluster_size'])
+            sample[sensor_name].update({'sample_likelihood': sample_likelihood})
         return sample
 
     def _get_sample_data(self, sample_id, sensor_name):

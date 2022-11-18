@@ -36,6 +36,16 @@ from tridet.visualizers import get_dataloader_visualizer, get_predictions_visual
 
 LOG = logging.getLogger('tridet')
 
+def dequity_loss_weight(p, eta=1.0, gamma=5.0):
+    """Calculate the dequity loss weight.
+    Args:
+        p (float): The probability of the sample.
+        eta (float): The parameter to control the weight.
+        gamma (float): The parameter to control the weight.
+    Returns:
+        float: The dequity loss weight.
+    """
+    return (eta + (1 - p) ** gamma) / (eta + 1)
 
 @hydra.main(config_path="../configs/", config_name="defaults")
 def main(cfg):
@@ -120,6 +130,11 @@ def do_train(cfg, model):
 
         with amp.autocast(enabled=cfg.SOLVER.MIXED_PRECISION_ENABLED):
             loss_dict = model(data)
+
+        loss_weight = dequity_loss_weight(data[0]["sample_likelihood"], 
+                                          cfg.DATASETS.TRAIN.DEQUITY_ETA, 
+                                          cfg.DATASETS.TRAIN.DEQUITY_GAMMA) if \
+                        cfg.DATASETS.TRAIN.DATASET_EQUITY_ENABLED else 1.0
         # Account for accumulated gradients.
         loss_dict = {name: loss / accumulate_grad_batches for name, loss in loss_dict.items()}
         losses = sum(loss_dict.values())

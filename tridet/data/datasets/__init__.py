@@ -12,6 +12,7 @@ from tridet.data.datasets.nuscenes import register_nuscenes_datasets
 def register_datasets(cfg):
     train_dataset_name = cfg.DATASETS.TRAIN.NAME
     test_dataset_name = cfg.DATASETS.TEST.NAME
+    print("Registering datasets: train={}, test={}".format(train_dataset_name, test_dataset_name))
 
     required_datasets = [train_dataset_name, test_dataset_name]
 

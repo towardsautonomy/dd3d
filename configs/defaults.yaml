@@ -17,6 +17,7 @@ WANDB:
   PROJECT: dd3d
   GROUP:
   TAGS: []
+  NAME:
 
 EVAL_ONLY: False
 EVAL_ON_START: False
