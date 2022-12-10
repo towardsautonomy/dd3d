@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - dd3d_kitti_dla34
+  - dd3d_kitti_v99
 
 DATASETS:
   TRAIN:
@@ -12,7 +12,7 @@ DATASETS:
     NAME: kitti_3d_val
 
 SOLVER:
-  IMS_PER_BATCH: 64
+  IMS_PER_BATCH: 32
 
 WANDB:
   ENABLED: True

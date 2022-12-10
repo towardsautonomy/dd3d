@@ -2,6 +2,9 @@
 outputs/
 wandb/
 
+# dataset
+data/
+
 # cluster hostfiles
 hostfiles/
 
